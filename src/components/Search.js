@@ -3,7 +3,18 @@ import axios from 'axios';
 
 const Search = (props) => {
 	const [ term, setTerm ] = useState('reactjs');
+	const [ debounceTerm, setDebounceTerm ] = useState(term);
 	const [ results, setResults ] = useState([]);
+
+	useEffect(
+		() => {
+			const id = setTimeout(() => {
+				setDebounceTerm(term);
+			}, 750);
+			return () => clearTimeout(id);
+		},
+		[ term ]
+	);
 
 	useEffect(
 		() => {
@@ -14,24 +25,17 @@ const Search = (props) => {
 						list: 'search',
 						origin: '*',
 						format: 'json',
-						srsearch: term
+						srsearch: debounceTerm
 					}
 				});
 
 				setResults(data.query.search);
 			};
-			if (term && results.length === 0) {
+			if (debounceTerm) {
 				search();
-			} else {
-				const id = setTimeout(() => {
-					if (term) {
-						search();
-					}
-				}, 1000);
-				return () => clearTimeout(id);
 			}
 		},
-		[ term ]
+		[ debounceTerm ]
 	);
 
 	const renderedResults = results.map((result) => {
